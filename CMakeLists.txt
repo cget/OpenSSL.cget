@@ -1,36 +1,35 @@
 cmake_minimum_required (VERSION 3.0) 
 project (OpenSSL.cget C CXX)
 
-find_package(Git)
+include(${CGET_CORE_DIR}/.cget/core.cmake)
 
-if(NOT EXISTS ${CMAKE_CURRENT_LIST_DIR}/repo)
-  execute_process(COMMAND
-    ${GIT_EXECUTABLE} clone https://github.com/OpenSSL/OpenSSL ${CMAKE_CURRENT_LIST_DIR}/repo --depth=1 --branch=OpenSSL_1_0_1p)
-endif()
+CGET_GET_PACKAGE(OpenSSL GITHUB openssl/openssl VERSION "${CGET_REQUESTED_VERSION}")
+
+# autoconf does _not_ like spaces in prefix
+SET(TEMP_DIR "/tmp/cget/install_root")
+CGET_EXECUTE_PROCESS(COMMAND ${CMAKE_COMMAND} -E remove_directory "${TEMP_DIR}")
+FILE(MAKE_DIRECTORY ${TEMP_DIR})
 
 if(NOT ${CMAKE_CROSSCOMPILING})
-  execute_process(COMMAND ./config shared --prefix=${CMAKE_INSTALL_PREFIX}
-    WORKING_DIRECTORY repo
-    )
+    CGET_EXECUTE_PROCESS(COMMAND ./config shared --prefix=${TEMP_DIR} WORKING_DIRECTORY "${CGET_OpenSSL_REPO_DIR}")
 else()
-  message("Configuring for ${CMAKE_SYSTEM_PROCESSOR}")
-  if("${CMAKE_SYSTEM_PROCESSOR}" STREQUAL "x86_64")
-    SET(OS_COMPILER "linux-x86_64")
-  elseif("${CMAKE_SYSTEM_PROCESSOR}" STREQUAL "arm")
-    SET(OS_COMPILER "linux-armv4")
-  else()
-    message(FATAL_ERROR "CMAKE_SYSTEM_PROCESSOR '${CMAKE_SYSTEM_PROCESSOR}' doesn't have an os/compiler mapping to OpenSSL.")
-  endif()
+    message("Configuring for ${CMAKE_SYSTEM_PROCESSOR}")
+    if("${CMAKE_SYSTEM_PROCESSOR}" STREQUAL "x86_64")
+        SET(OS_COMPILER "linux-x86_64")
+    elseif("${CMAKE_SYSTEM_PROCESSOR}" STREQUAL "arm")
+        SET(OS_COMPILER "linux-armv4")
+    else()
+        message(FATAL_ERROR "CMAKE_SYSTEM_PROCESSOR '${CMAKE_SYSTEM_PROCESSOR}' doesn't have an os/compiler mapping to OpenSSL.")
+    endif()
 
-  message("Running ./Configure ${OS_COMPILER} --prefix=${CMAKE_INSTALL_PREFIX}")
-  execute_process(COMMAND ./Configure  shared ${OS_COMPILER} --prefix=${CMAKE_INSTALL_PREFIX}
-    WORKING_DIRECTORY repo
-    )  
+    message("Running ./Configure ${OS_COMPILER} --prefix=${CMAKE_INSTALL_PREFIX}")
+    CGET_EXECUTE_PROCESS(COMMAND ./Configure  shared ${OS_COMPILER} --prefix=${TEMP_DIR}
+        WORKING_DIRECTORY repo
+        )  
 endif()
 
-execute_process(COMMAND make
-  WORKING_DIRECTORY repo
-)
+CGET_EXECUTE_PROCESS(COMMAND make WORKING_DIRECTORY ${CGET_OpenSSL_REPO_DIR})
+CGET_EXECUTE_PROCESS(COMMAND make install WORKING_DIRECTORY ${CGET_OpenSSL_REPO_DIR})
+CGET_EXECUTE_PROCESS(COMMAND ${CMAKE_COMMAND} -E copy_directory "${TEMP_DIR}" "${CGET_INSTALL_DIR}")
 
-install(CODE "execute_process(COMMAND make install WORKING_DIRECTORY repo)")
-
+install(CODE "")
