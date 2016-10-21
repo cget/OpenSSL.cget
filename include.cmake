@@ -1,3 +1,7 @@
+if(NOT DEFINED CGET_REQUESTED_VERSION)
+  set(CGET_REQUESTED_VERSION OpenSSL_1_0_2h)
+endif()
+
 if(NOT MSVC)
     CGET_GET_PACKAGE(OpenSSL GITHUB openssl/openssl VERSION "${CGET_REQUESTED_VERSION}")
 
@@ -31,4 +35,5 @@ else()
     CGET_NUGET_BUILD(openssl 1.0.2.0)
 endif()
 install(CODE "")
+
 set(ARGS_NO_FIND_PACKAGE OFF)
