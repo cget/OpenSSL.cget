@@ -21,23 +21,21 @@ if(NOT BUILD_CACHE_VAL STREQUAL Build_Hash)
     
     CGET_EXECUTE_PROCESS(COMMAND cp -R "${CGET_OpenSSL_REPO_DIR}" "${TEMP_SRC_DIR}")
 
-    if(NOT ${CMAKE_CROSSCOMPILING})
-      CGET_EXECUTE_PROCESS(COMMAND ./config shared --prefix=${TEMP_DIR} WORKING_DIRECTORY "${TEMP_SRC_DIR}")
+    CGET_MESSAGE(3 "Configuring for ${CMAKE_SYSTEM_PROCESSOR}")
+    if(APPLE)
+      SET(OS_COMPILER "darwin64-x86_64-cc")
+    elseif("${CMAKE_SYSTEM_PROCESSOR}" STREQUAL "x86_64")
+      SET(OS_COMPILER "linux-x86_64")
+    elseif("${CMAKE_SYSTEM_PROCESSOR}" STREQUAL "arm")
+      SET(OS_COMPILER "linux-armv4")
     else()
-      message("Configuring for ${CMAKE_SYSTEM_PROCESSOR}")
-      if("${CMAKE_SYSTEM_PROCESSOR}" STREQUAL "x86_64")
-        SET(OS_COMPILER "linux-x86_64")
-      elseif("${CMAKE_SYSTEM_PROCESSOR}" STREQUAL "arm")
-        SET(OS_COMPILER "linux-armv4")
-      else()
-        message(FATAL_ERROR "CMAKE_SYSTEM_PROCESSOR '${CMAKE_SYSTEM_PROCESSOR}' doesn't have an os/compiler mapping to OpenSSL.")
-      endif()
-
-      message("Running ./Configure ${OS_COMPILER} --prefix=${CMAKE_INSTALL_PREFIX}")
-      CGET_EXECUTE_PROCESS(COMMAND ./Configure  shared ${OS_COMPILER} --prefix=${TEMP_DIR}
-        WORKING_DIRECTORY repo
-        )  
+      message(FATAL_ERROR "CMAKE_SYSTEM_PROCESSOR '${CMAKE_SYSTEM_PROCESSOR}' doesn't have an os/compiler mapping to OpenSSL.")
     endif()
+
+    message("Running ./Configure ${OS_COMPILER} --prefix=${CMAKE_INSTALL_PREFIX}")
+    CGET_EXECUTE_PROCESS(COMMAND ./Configure shared ${OS_COMPILER} --prefix="${TEMP_DIR}"
+      WORKING_DIRECTORY "${TEMP_SRC_DIR}"
+      )  
 
     CGET_EXECUTE_PROCESS(COMMAND make WORKING_DIRECTORY "${TEMP_SRC_DIR}")
     CGET_EXECUTE_PROCESS(COMMAND make install_sw WORKING_DIRECTORY "${TEMP_SRC_DIR}")
