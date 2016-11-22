@@ -32,8 +32,8 @@ if(NOT BUILD_CACHE_VAL STREQUAL Build_Hash)
       message(FATAL_ERROR "CMAKE_SYSTEM_PROCESSOR '${CMAKE_SYSTEM_PROCESSOR}' doesn't have an os/compiler mapping to OpenSSL.")
     endif()
 
-    message("Running ./Configure ${OS_COMPILER} --prefix=${CMAKE_INSTALL_PREFIX}")
-    CGET_EXECUTE_PROCESS(COMMAND ./Configure shared ${OS_COMPILER} --prefix="${TEMP_DIR}"
+    CGET_MESSAGE("Running ./Configure ${OS_COMPILER} --prefix=${CMAKE_INSTALL_PREFIX}")
+    CGET_EXECUTE_PROCESS(COMMAND ./Configure shared ${OS_COMPILER} --prefix=${TEMP_DIR}
       WORKING_DIRECTORY "${TEMP_SRC_DIR}"
       )  
 
